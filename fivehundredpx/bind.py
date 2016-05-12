@@ -1,6 +1,8 @@
+import json
+
 from fivehundredpx.utils   import Util
 from fivehundredpx.errors  import *
-import urllib, re, httplib, time, simplejson
+import urllib.request, urllib.parse, urllib.error, re, http.client, time
 
 re_path_template = re.compile('{\w+}')
 
@@ -38,9 +40,9 @@ def bind_api(**config):
                 try:
                     self.parameters[self.allowed_params[index]] = value
                 except IndexError:
-                    raise FiveHundredsClientError("Too many arguments supplied")
+                    raise FiveHundredClientError("Too many arguments supplied")
 
-            for key,value in kwargs.iteritems():
+            for key,value in kwargs.items():
                 if value is None: continue
                 if type(value) in (list, tuple):
                     self.parameters[key + "[]"] = value
@@ -51,18 +53,18 @@ def bind_api(**config):
             for variable in re_path_template.findall(self.path):
                 name = variable.strip('{}')			
                 try:
-                    value = urllib.quote(str(self.parameters[name]))
+                    value = urllib.parse.quote(str(self.parameters[name]))
                     del self.parameters[name]
                     self.path = self.path.replace(variable,value)
                 except KeyError:
-                    raise FiveHundredsClientError('No parameter value found for path variable: %s' % name)
+                    raise FiveHundredClientError('No parameter value found for path variable: %s' % name)
 
         def _execute(self):
             url = "%s%s%s%s" % (self.protocol,self.api.host,self.api.version,self.path)
 
             if self.method == "GET" or self.as_query == True:
                 param_list = []
-                for key, value in self.parameters.iteritems():
+                for key, value in self.parameters.items():
                     if type(value) in (list, tuple):
                         for v in value:
                             param_list.append("%s=%s" % (key, v))                   
@@ -72,7 +74,7 @@ def bind_api(**config):
                 if len(param_list) != 0 : url = "%s?%s" % (url, "&".join(param_list))
 
             elif self.method == "POST" or self.method == "PUT":
-                if self.headers.has_key('Content-Type') == False:
+                if ('Content-Type' in self.headers) == False:
                     self.headers['Content-Type'] = "application/x-www-form-urlencoded; charset=UTF-8"
 
             postdata = None
@@ -82,12 +84,12 @@ def bind_api(**config):
 
             if self.path == "/upload": postdata = self.body
 
-            for count in xrange(self.api.retry_count):
-                conn = httplib.HTTPSConnection(self.api.host) if self.api.secure else httplib.HTTPConnection(self.api.host)
+            for count in range(self.api.retry_count):
+                conn = http.client.HTTPSConnection(self.api.host) if self.api.secure else http.client.HTTPConnection(self.api.host)
                 try:
                     conn.request(self.method, url, body=postdata, headers=self.headers)
                     response = conn.getresponse()
-                except Exception, e:
+                except Exception as e:
                     conn.close()
                     raise FiveHundredClientError('Failed to send request: %s' % e)
 
@@ -101,7 +103,9 @@ def bind_api(**config):
             if response.status > 199 and response.status < 300:
                 result = response.read()
                 conn.close()
-                return simplejson.loads(result)
+                result_str = str(result, 'utf-8')
+                return json.loads(result_str)
+
             else:
                 try:
                     error_msg = self.api.parser.parse_error(response.read())
@@ -113,7 +117,7 @@ def bind_api(**config):
 
         def _generator(self):
             base = self.parameters['page'] if 'page' in self.parameters else 1    
-            for count in xrange(self.max_pages):
+            for count in range(self.max_pages):
                 self.parameters['page'] = base + count
                 yield self._execute()
             return

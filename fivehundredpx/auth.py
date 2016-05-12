@@ -1,4 +1,4 @@
-from urllib2 import Request, urlopen
+from urllib.request import Request, urlopen
 
 from fivehundredpx import oauth
 from fivehundredpx.settings import *
@@ -54,7 +54,7 @@ class OAuthHandler(object):
                 token=self.request_token, http_url=self._get_oauth_url('authorize')
             )
             return request.to_url()
-        except Exception, e:
+        except Exception as e:
             raise FiveHundredClientError(e)
 
     def get_access_token(self,verifier=None):
@@ -67,7 +67,7 @@ class OAuthHandler(object):
             response = urlopen(Request(url,headers=request.to_header()))
             self.access_token = oauth.OAuthToken.from_string(response.read())
             return self.access_token
-        except Exception, e:
+        except Exception as e:
             raise FiveHundredClientError(e)
 
     def get_xauth_access_token(self,username,password):
@@ -88,5 +88,5 @@ class OAuthHandler(object):
             response = urlopen(Request(url,data=request.to_postdata()))
             self.access_token = oauth.OAuthToken.from_string(response.read())
             return self.access_token
-        except Exception, e:
+        except Exception as e:
             raise FiveHundredClientError(e)	

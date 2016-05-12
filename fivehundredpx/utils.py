@@ -1,7 +1,7 @@
 from fivehundredpx.settings import *
 from fivehundredpx.errors   import *
 import os, mimetypes
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 class Util(object):
     @staticmethod
@@ -10,14 +10,14 @@ class Util(object):
 
     @staticmethod
     def encode_string(value):
-        return value.encode('utf-8') if isinstance(value,unicode) else str(value)
+        return value.encode('utf-8') if isinstance(value,str) else str(value)
 
 class FileUtil(object):
     @staticmethod
     def create_body_by_filepath(filepath,name,parameters):
         file_type = mimetypes.guess_type(filepath)
         if file_type[0] not in ALLOWED_FILE_TYPES:
-            raise FiveHundredsClientError('Invalid file type for image: %s' % file_type[0])
+            raise FiveHundredClientError('Invalid file type for image: %s' % file_type[0])
 
         fp = open(filepath,'rb')
         headers,body = FileUtil._create_body(fp,name,file_type[0],parameters)
@@ -27,7 +27,7 @@ class FileUtil(object):
     @staticmethod
     def create_body_by_fp(fp,name,file_type,parameters):
         if file_type not in ALLOWED_FILE_TYPES:
-            raise FiveHundredsClientError('Invalid file type for image: %s' % file_type)
+            raise FiveHundredClientError('Invalid file type for image: %s' % file_type)
         return FileUtil._create_body(fp, name, file_type, parameters)
 
     @staticmethod
@@ -35,7 +35,7 @@ class FileUtil(object):
         BOUNDARY = 'fsdeklzzpo4oopsp'
         body = []
         body.append('--' +  BOUNDARY)
-        for key,value in parameters.iteritems():
+        for key,value in parameters.items():
             body.append('Content-Disposition: form-data; name="%s"' % key )
             body.append('')
             body.append(str(value))
@@ -60,7 +60,7 @@ class FileUtil(object):
     def create_body(parameters):
         BOUNDARY = 'fsdeklzzpo4oopsp'
         body = []
-        for key,value in parameters.iteritems():
+        for key,value in parameters.items():
             body.append('--' + BOUNDARY)
             body.append('Content-Disposition: form-data; name="%s"' % key )
             body.append('')

@@ -1,7 +1,7 @@
-from base import *
+from .base import *
 
 if len(sys.argv) < 5:
-	print 'Usage: # python %s consumer_key consumer_secret request_token request_token_secret' % sys.argv[0]
+	print('Usage: # python %s consumer_key consumer_secret request_token request_token_secret' % sys.argv[0])
 	quit()
 
 CONSUMER_KEY       = str(sys.argv[1])
