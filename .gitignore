@@ -2,3 +2,5 @@
 .DS_Store
 *.swp
 python_500px.egg-info/
+*.bak
+.env
